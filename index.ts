@@ -76,7 +76,7 @@ async function main() {
       })
     }).catch(e => {
       res.status(400).json({
-        status: 'success',
+        status: 'error',
         message: e,
       })
     })
