@@ -3,6 +3,7 @@ import { ClientConfig, Client, middleware, MiddlewareConfig, WebhookEvent, TextM
 import express, { Application, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 import ConversationHandler from './src/conversationHandler';
+import bodyParser from 'body-parser'
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ const client = new Client(clientConfig);
 
 // Create a new Express application.
 const app: Application = express();
+app.use(bodyParser.json())
 
 // Function handler to receive the text.
 const textEventHandler = async (event: WebhookEvent): Promise<MessageAPIResponseBase | undefined> => {
@@ -64,6 +66,7 @@ async function main() {
   })
   
   app.post('/reply', async(req: Request, res: Response): Promise<void> => {
+    console.log(req.body)
     const userId: string = req.body.userId;
     const query: string = req.body.query
     conversationHandler.reply(query, userId, (response: string) => {
@@ -135,4 +138,3 @@ async function main() {
 }
 
 main()
-
