@@ -22,7 +22,7 @@ class ConversationHandler {
   // manage prompt
   // manage conversation - v
   // reply context
-  async reply(text: string, sender: string): Promise<string> {
+  async reply(text: string, sender: string, reply: Function): Promise<boolean> {
     const newLogs: ChatMessage[] = []
     const pastLogs = await this.redisProvider.getLog(sender)
     pastLogs.push({
@@ -45,11 +45,11 @@ class ConversationHandler {
         responseLog = systemChatLog
       }
     }
-
-    await this.redisProvider.appendLog(sender, newLogs)
-    console.log(responseLog)
     // @ts-ignore
-    return responseLog.content || "no response"
+    reply(responseLog.content)
+    await this.redisProvider.appendLog(sender, newLogs)
+
+    return true
   }
 }
 

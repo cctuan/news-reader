@@ -48,15 +48,36 @@ const textEventHandler = async (event: WebhookEvent): Promise<MessageAPIResponse
 
 async function main() {
   const conversationHandler = await ConversationHandler.init()
-  app.get('/reply', async(req: Request, res: Response): Promise<Response> => {
+  app.get('/debug', async(req: Request, res: Response): Promise<void> => {
     const query = String(req.query.q) || '';
-    conversationHandler.reply(query, "debugId")
-    return res.status(200).json({
-      status: 'success',
-      message: 'Connected successfully!',
+    conversationHandler.reply(query, "debugId", (response: string) => {
+      res.status(200).json({
+        status: 'success',
+        message: response,
+      })
+    }).catch(e => {
+      res.status(400).json({
+        status: 'success',
+        message: e,
+      })
     })
   })
   
+  app.post('/reply', async(req: Request, res: Response): Promise<void> => {
+    const userId: string = req.body.userId;
+    const query: string = req.body.query
+    conversationHandler.reply(query, userId, (response: string) => {
+      res.status(200).json({
+        status: 'success',
+        message: response,
+      })
+    }).catch(e => {
+      res.status(400).json({
+        status: 'success',
+        message: e,
+      })
+    })
+  })
   
   // Register the LINE middleware.
   // As an alternative, you could also pass the middleware in the route handler, which is what is used here.

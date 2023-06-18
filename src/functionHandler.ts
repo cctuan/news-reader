@@ -14,6 +14,10 @@ type QueryParams = {
   next?: number;
 }
 
+function filterContent(doc?: string): string {
+  return (doc || '').replace(/\n/g, ' ').replace(/\[\…\]/g, "..細節省略")
+}
+
 class FunctionHandler {
   inputs: RSS_DATA[];
   vectorStore: VectorStore;
@@ -135,12 +139,12 @@ class FunctionHandler {
 
   getLatestOnes(params: QueryParams): string {
     const list = this.getListByPage(params.page, this.inputs)
-    console.info({list})
     if (list.length === 0) {
       return "這幾天看似沒有更新的新聞"
     }
     return list.map((item) => {
-      return `${item.title}, ${item.content}`
+      item.content = filterContent(item.content)
+      return `主題:${item.title}; ${item.content && ("內容:" + item.content + ";")}`
     }).join(';')
   }
 
@@ -158,7 +162,8 @@ class FunctionHandler {
       filteredResult
     )
     return list.map((item) => {
-      return `${item.title}, ${item.content}`
+      item.content = filterContent(item.content)
+      return `主題:${item.title}; ${item.content && ("內容:" + item.content + ";")}`
     }).join(';')
   }
 
@@ -179,8 +184,7 @@ class FunctionHandler {
     ].sort((a, b) => {
       return  b.length - a.length
     })[0]
-    console.log({content})
-    return content
+    return filterContent(content)
   }
 
   getKeyword(query: string) {
