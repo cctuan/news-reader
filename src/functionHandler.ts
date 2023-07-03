@@ -2,6 +2,7 @@
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { VectorStore } from "langchain/dist/vectorstores/base";
 import AiProvider from "./aiProvider";
+import {Storage} from '@google-cloud/storage';
 import { Document } from "langchain/dist/document";
 
 type FunctionHandlerInput = {
@@ -29,10 +30,13 @@ class FunctionHandler {
   }
 
   static async init(embeddedUrl: string) {
+    const storage = new Storage();
+
     try {
-      const response = await fetch(embeddedUrl)
-      const preLoadedData = await response.json()
-      return new FunctionHandler(preLoadedData)
+      const contents = await storage.bucket("news_source").file("result.json").download();
+      // const contents = await fetch(embeddedUrl)
+      // const preLoadedData = await response.json()
+      return new FunctionHandler(JSON.parse(contents.toString()))
     } catch (e) {
       console.error(e)
       return new FunctionHandler({})
