@@ -5,20 +5,12 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 class AiProvider {
   openaiConfig: Configuration;
   constructor(){
-    this.openaiConfig = new Configuration({
-      basePath: 'https://mlu-hub.linecorp.com/v1/app/openai',
-      baseOptions: {
-        headers: {
-          "Authorization": `PROJECT ${process.env.MLU_PROJECT_TOKEN}`,
-          "Content-Type": "application/json",
-        }
-      }
-    })
+    this.openaiConfig = new Configuration()
   }
 
   getEmbeddingModule(): OpenAIEmbeddings {
     return new OpenAIEmbeddings({
-      openAIApiKey: "123",
+      openAIApiKey: process.env.OPEN_AI_KEY || '123',
       batchSize: 1024,
       modelName: "text-embedding-ada-002"
     }, this.openaiConfig);
@@ -35,11 +27,11 @@ class AiProvider {
       // @ts-ignore
       payload.functions = functions
     }
-    const res = await fetch('https://mlu-hub.linecorp.com/v1/app/openai/chat/completions', {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
       headers: {
         'Content-Type': 'application/json',
         // Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ''}`,
-        Authorization: `PROJECT ${process.env.MLU_PROJECT_TOKEN}`,
+        Authorization: `Bearer ${process.env.OPEN_AI_KEY}`,
       },
       method: 'POST',
       body: JSON.stringify(payload),

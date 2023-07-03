@@ -1,21 +1,21 @@
 
 import AiProvider from "./aiProvider";
 import FunctionHandler from "./functionHandler"
-import RedisProvider from "./redisProvider";
+import MemoryProvider from "./memoryProvider";
 
 class ConversationHandler {
   functionHandler: FunctionHandler;
-  redisProvider: RedisProvider;
+  memoryProvider: MemoryProvider;
   aiProvider: AiProvider;
-  constructor(functionHandler: FunctionHandler, redisProvider: RedisProvider) {
+  constructor(functionHandler: FunctionHandler, memoryProvider: MemoryProvider) {
     this.aiProvider = new AiProvider()
     this.functionHandler = functionHandler
-    this.redisProvider = redisProvider
+    this.memoryProvider = memoryProvider
   }
   static async init() {
     const functionHandler = await FunctionHandler.init(process.env.EMBEDDED_DATA || '')
-    const redisProvider = await RedisProvider.init()
-    return new ConversationHandler(functionHandler, redisProvider)
+    const memoryProvider = await MemoryProvider.init()
+    return new ConversationHandler(functionHandler, memoryProvider)
   }
 
   // call func
@@ -24,7 +24,7 @@ class ConversationHandler {
   // reply context
   async reply(text: string, sender: string, reply: Function): Promise<boolean> {
     const newLogs: ChatMessage[] = []
-    const pastLogs = await this.redisProvider.getLog(sender)
+    const pastLogs = await this.memoryProvider.getLog(sender)
     pastLogs.push({
       role: "user",
       content: text
@@ -47,7 +47,7 @@ class ConversationHandler {
     }
     // @ts-ignore
     reply(responseLog.content)
-    await this.redisProvider.appendLog(sender, newLogs)
+    await this.memoryProvider.appendLog(sender, newLogs)
 
     return true
   }

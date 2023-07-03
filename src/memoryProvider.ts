@@ -1,29 +1,32 @@
 
-import { createClient, RedisClientType } from 'redis';
+type StorageType = {
+  [key: string]: string;
+}
 
-class RedisProvider {
-  private client: RedisClientType;
-  constructor(client: RedisClientType) {
+class LocalStore {
+  storage: StorageType;
+  constructor() {
+    this.storage = {}
+  }
+  get(key: string): string {
+    return this.storage[key]
+  }
+  set(key: string, value: string) {
+    this.storage[key] = value
+  }
+  del(key: string) {
+    delete this.storage[key]
+  }
+}
+
+
+class MemoryProvider {
+  client: LocalStore;
+  constructor(client: LocalStore) {
     this.client = client
   }
   static async init() {
-    const client = createClient({
-      password: process.env.REDIS_PASSWORD,
-      socket: {
-          host: process.env.REDIS_HOST,
-          port: Number(process.env.REDIS_PORT),
-      }
-    })
-    await client.connect()
-    // @ts-ignore
-    return new RedisProvider(client)
-  }
-  async initRedisStorage() {
-    try {
-      await this.client.connect();
-    } catch (err) {
-      console.error(err);
-    }
+    return new MemoryProvider(new LocalStore())
   }
 
   async getLog(key: string): Promise<ChatMessage[]> {
@@ -42,9 +45,7 @@ class RedisProvider {
       const maxStoreCount = 6
       const totalLogs = [...pastLogs, ...chatMessages].slice(-maxStoreCount)
 
-      await this.client.set(`news:${key}`, JSON.stringify(totalLogs), {
-        EX: 5 * 60
-      });
+      await this.client.set(`news:${key}`, JSON.stringify(totalLogs));
     } catch (err) {
       console.error('Error: appendLog', err);
     }
@@ -61,4 +62,4 @@ class RedisProvider {
   }
 }
 
-export default RedisProvider
+export default MemoryProvider
